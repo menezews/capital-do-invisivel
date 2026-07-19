@@ -113,6 +113,7 @@ html, body {
    class="pin-marcador pin-marcador--misterio"
    ------------------------------------------ */
 .pin-marcador {
+  position: relative;
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -120,10 +121,6 @@ html, body {
   box-shadow: 0 0 6px rgba(201, 162, 39, 0.6);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  /* Não precisa de "position: relative" aqui: o MapLibre já
-     aplica "position: absolute" nessa div (via classe
-     .maplibregl-marker), e isso já serve de base pra
-     posicionar a moldura (::after) logo abaixo. */
 }
 
 /* MOLDURA DE PEDRA: um "carimbo" SVG desenhado por cima do
@@ -145,7 +142,7 @@ html, body {
   width: 56px;
   height: 56px;
   transform: translate(-50%, -50%);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50,2 L63,18.6 L83.9,16.1 L81.4,37 L98,50 L81.4,63 L83.9,83.9 L63,81.4 L50,98 L37,81.4 L16.1,83.9 L18.6,63 L2,50 L18.6,37 L16.1,16.1 L37,18.6 Z' fill='%232a2621' transform='translate(1.5,1.5)'/%3E%3Cpath d='M50,2 L63,18.6 L83.9,16.1 L81.4,37 L98,50 L81.4,63 L83.9,83.9 L63,81.4 L50,98 L37,81.4 L16.1,83.9 L18.6,63 L2,50 L18.6,37 L16.1,16.1 L37,18.6 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%23847c6d' stroke='%232b2822' stroke-width='1.2' fill-rule='evenodd'/%3E%3Cpath d='M87,50 A37,37 0 1,0 13,50 A37,37 0 1,0 87,50 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%23948c7d' stroke='%232b2822' stroke-width='1.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50,2 L63,18.6 L83.9,16.1 L81.4,37 L98,50 L81.4,63 L83.9,83.9 L63,81.4 L50,98 L37,81.4 L16.1,83.9 L18.6,63 L2,50 L18.6,37 L16.1,16.1 L37,18.6 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%232a2621' fill-rule='evenodd' transform='translate(1.5,1.5)'/%3E%3Cpath d='M50,2 L63,18.6 L83.9,16.1 L81.4,37 L98,50 L81.4,63 L83.9,83.9 L63,81.4 L50,98 L37,81.4 L16.1,83.9 L18.6,63 L2,50 L18.6,37 L16.1,16.1 L37,18.6 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%23847c6d' stroke='%232b2822' stroke-width='1.2' fill-rule='evenodd'/%3E%3Cpath d='M87,50 A37,37 0 1,0 13,50 A37,37 0 1,0 87,50 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%23948c7d' stroke='%232b2822' stroke-width='1.2' fill-rule='evenodd'/%3E%3C/svg%3E");
   background-size: contain;
   background-repeat: no-repeat;
   pointer-events: none;
@@ -163,29 +160,37 @@ html, body {
    O "background-image" é definido no script.js (é diferente
    pra cada local), aqui só ajustamos ela pra preencher certo. */
 .pin-marcador--com-imagem {
-  background-color: var(--cor-painel);
-  background-size: cover;
-  background-position: center;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
 }
 
-/* Categoria "perigo" - vermelho de azulejo oxidado.
-   IMPORTANTE: usamos "background-image" (não o atalho
-   "background") de propósito. O atalho "background" reseta
-   TODAS as sub-propriedades de fundo de uma vez — inclusive
-   o "background-size: cover" que a classe --com-imagem
-   define. Isso fazia a foto "quebrar" (aparecer cortada
-   estranho) em qualquer pin que tivesse categoria E foto
-   ao mesmo tempo, tipo a Lagoa. Usando só "background-image"
-   aqui, a categoria muda a cor sem bagunçar o ajuste da foto. */
+/* Categorias dos pins — cores combinando com os badges do
+   popup (.popup-categoria--local, --npc, --faccao).
+   Usamos "background-image" (não o atalho "background") de
+   propósito: o atalho reseta TODAS as sub-propriedades de
+   fundo de uma vez, o que quebrava a foto em pins que também
+   tinham categoria. */
+.pin-marcador--local {
+  background-image: radial-gradient(circle at 35% 35%, var(--cor-agua), #1f544c);
+}
+
+.pin-marcador--npc {
+  background-image: radial-gradient(circle at 35% 35%, #b09be0, #8e66bd);
+}
+
+.pin-marcador--faccao {
+  background-image: radial-gradient(circle at 35% 35%, #ff4d51, #b23e3e);
+  box-shadow: 0 0 6px rgba(139, 46, 46, 0.7);
+}
+
+/* Categorias antigas, mantidas por compatibilidade caso
+   algum local ainda use 'perigo' ou 'misterio'. */
 .pin-marcador--perigo {
   background-image: radial-gradient(circle at 35% 35%, #b23e3e, var(--cor-alerta));
   box-shadow: 0 0 6px rgba(139, 46, 46, 0.7);
 }
 
-/* Categoria "mistério" - verde-água com brilho pulsante,
-   uma referência à bioluminescência já registrada na
-   Baía de Guanabara. É o "toque especial" do mapa.
-   (mesmo motivo acima: background-image, não background) */
 .pin-marcador--misterio {
   background-image: radial-gradient(circle at 35% 35%, var(--cor-agua), #1f544c);
   animation: brilho-bioluminescente 2.4s ease-in-out infinite;
@@ -202,6 +207,74 @@ html, body {
   .pin-marcador--misterio {
     animation: none;
   }
+}
+
+/* ------------------------------------------
+   FILTROS (dentro do #ui)
+   ------------------------------------------ */
+#filtros {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* O #ui inteiro tem pointer-events: none — aqui a gente
+     "liga" de volta só nessa caixinha específica de filtros,
+     senão os botões ficam visíveis mas não clicáveis. */
+  pointer-events: auto;
+}
+
+.filtro-botao {
+  font-family: var(--fonte-corpo);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-painel);
+  color: var(--cor-texto-claro);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Botão "ligado" — categoria visível no mapa */
+.filtro-botao.ativo {
+  background: var(--cor-borda);
+  color: var(--cor-fundo);
+}
+
+/* Botão "desligado" — categoria escondida no mapa */
+.filtro-botao:not(.ativo) {
+  opacity: 0.5;
+}
+
+/* ------------------------------------------
+   LIGHTBOX (foto ampliada, clicando na foto do popup)
+   ------------------------------------------ */
+#lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(13, 31, 28, 0.92);
+  z-index: 100;
+  cursor: zoom-out;
+}
+
+/* O script.js adiciona essa classe pra mostrar o lightbox */
+#lightbox.ativo {
+  display: flex;
+}
+
+#lightbox img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
 }
 
 /* ------------------------------------------
@@ -244,35 +317,28 @@ html, body {
   color: var(--cor-texto-claro);
 }
 
-/* Conteúdo interno do pop-up: essas classes ainda NÃO
-   existem — vamos criá-las juntos no script.js, ao montar
-   o HTML de cada pop-up. A estrutura vai ser algo como:
-
-   <div class="popup-categoria">Taverna</div>
-   <h3 class="popup-titulo">Nome do Local</h3>
-   <p class="popup-descricao">Descrição do local...</p>
-*/
 /* Foto dentro do pop-up: ocupa a largura toda, "vazando"
    pra fora do padding do popup (por isso as margens negativas
    batendo com o padding de 20px lá de cima), com cantos
    arredondados só em cima, acompanhando o balão.
 
    height: auto faz o popup se ajustar exatamente ao formato
-   da foto na maioria dos casos (sem distorcer nada). Só
-   quando a foto é alta demais e bate no teto de 260px é que
-   entra o object-fit: fill — em vez de cortar a foto OU deixar
-   o fundo do popup aparecer nas bordas, ele estica a foto pra
-   preencher o espaço inteiro (pode distorcer um pouquinho a
-   proporção nesse caso específico, mas nunca sobra fundo à
-   mostra). */
+   da foto na maioria dos casos (mostra ela inteira, sem
+   cortar nada). Só quando a foto é alta demais e bate no teto
+   de 260px é que o object-fit: cover entra em ação — nesse
+   caso específico, em vez de distorcer a foto OU deixar o
+   fundo do popup aparecer, ele preenche o espaço inteiro
+   cortando só o mínimo necessário nas bordas (sem esticar,
+   sem gerar espaço vazio). */
 .popup-imagem {
   display: block;
   width: calc(100% + 40px);
   height: auto;
   max-height: 260px;
-  object-fit: fill;
+  object-fit: cover;
   margin: -20px -20px 12px -20px;
   border-radius: 4px 4px 0 0;
+  cursor: zoom-in;
 }
 
 .popup-categoria {
@@ -308,7 +374,7 @@ html, body {
 .popup-descricao {
   font-family: var(--fonte-corpo);
   font-size: 1rem;
-  line-height: 1,5;
+  line-height: 1.5;
   color: var(--cor-texto-claro);
   margin: 0;
 }
