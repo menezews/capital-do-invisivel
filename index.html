@@ -21,10 +21,22 @@
 
         <div id="mapa"></div>
 
-        <div id="ui"></div>
+        <div id="ui">
+            <div id="filtros">
+                <button type="button" class="filtro-botao ativo" data-categoria="local">Locais</button>
+                <button type="button" class="filtro-botao ativo" data-categoria="npc">NPCs</button>
+                <button type="button" class="filtro-botao ativo" data-categoria="faccao">Facções</button>
+            </div>
+        </div>
 
         <div id="carregando">
             <p>Carregando o Rio Invisível...</p>
+        </div>
+
+        <!-- Lightbox: mostra a foto do popup em tamanho grande.
+             Fica escondido (via CSS) até alguém clicar numa foto. -->
+        <div id="lightbox">
+            <img id="lightbox-imagem" src="" alt="">
         </div>
 
     </div>
