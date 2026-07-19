@@ -1,0 +1,332 @@
+/* ============================================
+   RIO INVISÍVEL — Estilos do mapa da campanha
+   ============================================
+   Este arquivo controla a aparência do mapa, dos pop-ups
+   (balões de informação) e dos pins (marcadores) que vamos
+   criar no script.js.
+
+   DICA: pra mudar as cores de TODO o site de uma vez, basta
+   editar os valores aqui embaixo, na seção ":root". O resto
+   do arquivo usa essas variáveis, então uma mudança ali se
+   reflete em tudo (mapa, pins, popups).
+*/
+
+/* Fontes do Google Fonts:
+   - Cinzel: títulos, entalhada, tipo monumento antigo/mapa de navegação
+   - Work Sans: texto normal, fácil de ler
+   - Special Elite: rótulos pequenos, estilo "máquina de escrever" de dossiê */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Uncial+Antiqua&family=Work+Sans:wght@400;500&display=swap');
+
+:root {
+  /* Paleta inspirada na Baía de Guanabara à noite e em mapas
+     de navegação antigos: dourado de latão, verde profundo,
+     vermelho de azulejo oxidado. */
+  --cor-fundo: #0d1f1c;        /* verde-noite quase preto, fundo geral */
+  --cor-painel: #17322c;       /* fundo dos pop-ups */
+  --cor-borda: #c9a227;        /* dourado latão - bordas, ícones, títulos */
+  --cor-agua: #4f9c8f;         /* verde-água - detalhes e hover */
+  --cor-alerta: #8b2e2e;       /* vermelho oxidado - marcadores de perigo */
+  --cor-texto-claro: #ede6d3;  /* tom "pergaminho" - texto sobre fundo escuro */
+
+  --fonte-titulo: 'Cinzel', serif;
+  --fonte-corpo: 'Work Sans', sans-serif;
+  --fonte-rotulo: 'Uncial Antiqua', cursive;
+}
+
+/* Reset básico + garante que o mapa ocupe 100% da tela,
+   em qualquer navegador ou celular. Sem isso, o mapa
+   aparece com altura zero (tela branca). */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--cor-fundo);
+  font-family: var(--fonte-corpo);
+}
+
+/* Container principal: tudo (mapa, ui, tela de carregamento)
+   vive dentro dele. Ele ocupa 100% da tela e serve de
+   referência de posicionamento pros elementos futuros do #ui. */
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#mapa {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* Camada de interface (busca, filtros, menus, painéis).
+   Fica por cima do mapa, mas com pointer-events: none o
+   mapa continua clicável através dela enquanto estiver vazia.
+   IMPORTANTE: quando adicionar um elemento real aqui dentro
+   (ex: uma barra de busca), lembre de dar "pointer-events: auto"
+   nesse elemento específico — senão ele fica visível, mas
+   não vai responder a cliques. */
+#ui {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ------------------------------------------
+   TELA DE CARREGAMENTO
+   Vai sumir automaticamente quando o script.js detectar
+   que o mapa terminou de carregar. No script.js, isso vai
+   ser algo como:
+   document.getElementById('carregando').style.display = 'none';
+   ------------------------------------------ */
+#carregando {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-fundo);
+  color: var(--cor-borda);
+  font-family: var(--fonte-titulo);
+  font-size: 1.5rem;
+  letter-spacing: 0.05em;
+  z-index: 10;
+  animation: respirar 2s ease-in-out infinite;
+}
+
+@keyframes respirar {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ------------------------------------------
+   PINS (MARCADORES)
+   Essa classe vai ser aplicada, no script.js, a um <div>
+   que criamos pra cada marcador no mapa. Categorias
+   diferentes usam uma classe extra, por exemplo:
+   class="pin-marcador pin-marcador--misterio"
+   ------------------------------------------ */
+.pin-marcador {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--cor-borda), #8a6a10);
+  box-shadow: 0 0 6px rgba(201, 162, 39, 0.6);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  /* Não precisa de "position: relative" aqui: o MapLibre já
+     aplica "position: absolute" nessa div (via classe
+     .maplibregl-marker), e isso já serve de base pra
+     posicionar a moldura (::after) logo abaixo. */
+}
+
+/* MOLDURA DE PEDRA: um "carimbo" SVG desenhado por cima do
+   pin, com um buraco redondo no meio (é ali que a cor/foto
+   do pin aparece). Tem 3 camadas desenhadas dentro do mesmo
+   SVG (a de baixo pinta primeiro):
+   1. uma sombra escura, levemente deslocada (dá profundidade)
+   2. a estrela de 8 pontas (rumos cardeais/colaterais)
+   3. um ANEL circular fino, por cima, que cobre só a base de
+      cada ponta — dá a impressão de que as pontas saem de
+      "por trás" desse círculo de pedra.
+   Tamanho: 56px (bem maior que o pin de 34px) porque as
+   pontas precisam sobrar pra fora do círculo da foto. */
+.pin-marcador::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  transform: translate(-50%, -50%);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50,2 L63,18.6 L83.9,16.1 L81.4,37 L98,50 L81.4,63 L83.9,83.9 L63,81.4 L50,98 L37,81.4 L16.1,83.9 L18.6,63 L2,50 L18.6,37 L16.1,16.1 L37,18.6 Z' fill='%232a2621' transform='translate(1.5,1.5)'/%3E%3Cpath d='M50,2 L63,18.6 L83.9,16.1 L81.4,37 L98,50 L81.4,63 L83.9,83.9 L63,81.4 L50,98 L37,81.4 L16.1,83.9 L18.6,63 L2,50 L18.6,37 L16.1,16.1 L37,18.6 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%23847c6d' stroke='%232b2822' stroke-width='1.2' fill-rule='evenodd'/%3E%3Cpath d='M87,50 A37,37 0 1,0 13,50 A37,37 0 1,0 87,50 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%23948c7d' stroke='%232b2822' stroke-width='1.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.pin-marcador:hover,
+.pin-marcador:focus-visible {
+  transform: scale(1.2);
+  box-shadow: 0 0 12px rgba(201, 162, 39, 0.9);
+  outline: none;
+}
+
+/* Pin com imagem: a foto vira o próprio fundo do círculo.
+   O "background-image" é definido no script.js (é diferente
+   pra cada local), aqui só ajustamos ela pra preencher certo. */
+.pin-marcador--com-imagem {
+  background-color: var(--cor-painel);
+  background-size: cover;
+  background-position: center;
+}
+
+/* Categoria "perigo" - vermelho de azulejo oxidado.
+   IMPORTANTE: usamos "background-image" (não o atalho
+   "background") de propósito. O atalho "background" reseta
+   TODAS as sub-propriedades de fundo de uma vez — inclusive
+   o "background-size: cover" que a classe --com-imagem
+   define. Isso fazia a foto "quebrar" (aparecer cortada
+   estranho) em qualquer pin que tivesse categoria E foto
+   ao mesmo tempo, tipo a Lagoa. Usando só "background-image"
+   aqui, a categoria muda a cor sem bagunçar o ajuste da foto. */
+.pin-marcador--perigo {
+  background-image: radial-gradient(circle at 35% 35%, #b23e3e, var(--cor-alerta));
+  box-shadow: 0 0 6px rgba(139, 46, 46, 0.7);
+}
+
+/* Categoria "mistério" - verde-água com brilho pulsante,
+   uma referência à bioluminescência já registrada na
+   Baía de Guanabara. É o "toque especial" do mapa.
+   (mesmo motivo acima: background-image, não background) */
+.pin-marcador--misterio {
+  background-image: radial-gradient(circle at 35% 35%, var(--cor-agua), #1f544c);
+  animation: brilho-bioluminescente 2.4s ease-in-out infinite;
+}
+
+@keyframes brilho-bioluminescente {
+  0%, 100% { box-shadow: 0 0 6px rgba(79, 156, 143, 0.6); }
+  50% { box-shadow: 0 0 16px rgba(79, 156, 143, 1); }
+}
+
+/* Respeita quem prefere menos animações na tela */
+@media (prefers-reduced-motion: reduce) {
+  #carregando,
+  .pin-marcador--misterio {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------
+   POP-UPS (balões de informação)
+   As classes com prefixo "maplibregl-" já existem por
+   padrão na biblioteca — aqui estamos sobrescrevendo o
+   visual padrão (branco) pelo nosso.
+   ------------------------------------------ */
+.maplibregl-popup-content {
+  background: var(--cor-painel);
+  border: 1px solid var(--cor-borda);
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  /* min() garante que o popup nunca seja mais largo do que a
+     tela (com 20px de margem de cada lado). max-height +
+     overflow-y fazem o mesmo na vertical: se o conteúdo for
+     maior que a tela, aparece uma barra de rolagem em vez de
+     cortar o popup pra fora da janela. */
+  max-width: min(340px, calc(100vw - 40px));
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+/* A "setinha" que aponta do balão pro pin */
+.maplibregl-popup-tip {
+  border-top-color: var(--cor-painel) !important;
+}
+
+.maplibregl-popup-close-button {
+  color: var(--cor-borda);
+  font-size: 1.2rem;
+  right: 8px;
+  top: 6px;
+}
+
+.maplibregl-popup-close-button:hover,
+.maplibregl-popup-close-button:focus-visible {
+  background: transparent;
+  color: var(--cor-texto-claro);
+}
+
+/* Conteúdo interno do pop-up: essas classes ainda NÃO
+   existem — vamos criá-las juntos no script.js, ao montar
+   o HTML de cada pop-up. A estrutura vai ser algo como:
+
+   <div class="popup-categoria">Taverna</div>
+   <h3 class="popup-titulo">Nome do Local</h3>
+   <p class="popup-descricao">Descrição do local...</p>
+*/
+/* Foto dentro do pop-up: ocupa a largura toda, "vazando"
+   pra fora do padding do popup (por isso as margens negativas
+   batendo com o padding de 20px lá de cima), com cantos
+   arredondados só em cima, acompanhando o balão.
+
+   height: auto faz o popup se ajustar exatamente ao formato
+   da foto na maioria dos casos (sem distorcer nada). Só
+   quando a foto é alta demais e bate no teto de 260px é que
+   entra o object-fit: fill — em vez de cortar a foto OU deixar
+   o fundo do popup aparecer nas bordas, ele estica a foto pra
+   preencher o espaço inteiro (pode distorcer um pouquinho a
+   proporção nesse caso específico, mas nunca sobra fundo à
+   mostra). */
+.popup-imagem {
+  display: block;
+  width: calc(100% + 40px);
+  height: auto;
+  max-height: 260px;
+  object-fit: fill;
+  margin: -20px -20px 12px -20px;
+  border-radius: 4px 4px 0 0;
+}
+
+.popup-categoria {
+  font-family: var(--fonte-rotulo);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: block;
+}
+.popup-categoria--local {
+  color: var(--cor-agua);
+}
+
+.popup-categoria--npc {
+  color: #8e66bd;
+}
+
+.popup-categoria--faccao {
+  color: #FF0004;
+}
+
+.popup-titulo {
+  font-family: var(--fonte-titulo);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--cor-borda);
+  margin: 0 0 8px 0;
+}
+
+.popup-descricao {
+  font-family: var(--fonte-corpo);
+  font-size: 1rem;
+  line-height: 1,5;
+  color: var(--cor-texto-claro);
+  margin: 0;
+}
+
+/* ------------------------------------------
+   AJUSTES PARA TELAS PEQUENAS (celular)
+   ------------------------------------------ */
+@media (max-width: 480px) {
+  .maplibregl-popup-content {
+    max-width: min(270px, calc(100vw - 32px));
+    padding: 16px;
+  }
+  .popup-imagem {
+    width: calc(100% + 32px);
+    max-height: 200px;
+    margin: -16px -16px 12px -16px;
+  }
+  .popup-titulo {
+    font-size: 1.1rem;
+  }
+}
