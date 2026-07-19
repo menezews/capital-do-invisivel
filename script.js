@@ -60,8 +60,7 @@ map.on('error', (evento) => {
 // copie um bloco inteiro (do "{" até o "},") e edite os valores.
 //
 // categoria: controla a cor do pin E aparece no texto do
-// pop-up. Precisa ser uma das que existem no style.css:
-// 'padrao', 'perigo' ou 'misterio'.
+// pop-up. Hoje existem: 'Local', 'NPC', 'Faccao'.
 //
 // coordenadas: [longitude, latitude] — nessa ordem, invertida
 // em relação ao que a gente costuma falar (“latitude e
@@ -69,11 +68,10 @@ map.on('error', (evento) => {
 //
 // imagem: OPCIONAL. Caminho pro arquivo de imagem (recomendo
 // colocar suas fotos numa pasta "assets/imagens/" e apontar
-// pra lá, tipo 'assets/imagens/colombo.jpg'). Se você não
-// colocar essa linha num local, ele simplesmente usa a
-// bolinha colorida de sempre, sem imagem.
+// pra lá). Se você não colocar essa linha num local, ele
+// simplesmente usa a bolinha colorida de sempre, sem imagem.
 const locais = [
-{
+  {
     coordenadas: [-43.17875, -22.90525],
     categoria: 'Local',
     titulo: 'Confeitaria Colombo',
@@ -81,36 +79,77 @@ const locais = [
     imagem: 'assets/imagens/Colombo.png',
   },
   {
-    coordenadas: [-43.2105, -22.9519],
-    categoria: 'NPC',
-    titulo: 'Cristo Redentor - O Cris',
-    descricao: 'Guardião da Cidade. E o cara mais gente boa que você já conheceu.',
-    imagem: 'assets/imagens/Cristor.png',
-  },
-  {
-    coordenadas: [-43.182194, -22.905472],
+coordenadas: [-43.182194, -22.905472],
     categoria: 'Local',
-    titulo: 'Gabinete Real Português de Leitura',
-    descricao: 'O arquivo da cidade. Protegido e zelado pela ',
-    imagem: 'assets/imagens/Gabinete.png'
+    titulo: 'GRPL - Gabinete Real Português de Leitura OC - MHC - MHSE - ComB - MHCa ',
+    descricao: 'O arquivo da cidade. Protegido e zelado pela Grã-Cruz Leo.',
+    imagem: 'assets/imagens/Gabinete.png',
   },
 ];
 
 
 // ------------------------------------------
-// 4. CRIAÇÃO DOS PINS E POP-UPS
+// 4. LIGHTBOX (ampliar a foto do popup)
 // ------------------------------------------
 
-// Cria o <div> de cada pin, já com as classes CSS certas
-// (definidas no style.css). Recebe o "local" inteiro (não só
-// a categoria) porque agora também precisa saber se tem imagem.
+const lightbox = document.getElementById('lightbox');
+const lightboxImagem = document.getElementById('lightbox-imagem');
+
+function abrirLightbox(src, alt) {
+  lightboxImagem.src = src;
+  lightboxImagem.alt = alt;
+  lightbox.classList.add('ativo');
+}
+
+function fecharLightbox() {
+  lightbox.classList.remove('ativo');
+}
+
+// Clicar em qualquer lugar do fundo escuro fecha o lightbox.
+lightbox.addEventListener('click', fecharLightbox);
+
+// Tecla ESC também fecha, útil pra quem prefere teclado.
+document.addEventListener('keydown', (evento) => {
+  if (evento.key === 'Escape') fecharLightbox();
+});
+
+
+// ------------------------------------------
+// 5. CRIAÇÃO DOS PINS E POP-UPS
+// ------------------------------------------
+
+// Transforma "Local", "NPC", "Facção" etc. num formato seguro
+// pra usar como nome de classe CSS: tudo minúsculo e sem
+// acento (--faccao em vez de --facção). Usada tanto pro pin
+// quanto pro badge do popup, pra garantir que os dois usem
+// exatamente a mesma regra e nunca fiquem fora de sincronia.
+function paraClasseCss(texto) {
+  return texto
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+// Cria o pin que vai no mapa. Usamos DOIS elementos, um dentro
+// do outro, por um motivo específico: o MapLibre escreve um
+// "transform" direto no estilo do elemento que a gente entrega
+// pra ele, pra posicionar o pin no mapa — isso tem prioridade
+// sobre qualquer CSS nosso, inclusive a regra de ":hover" que
+// faz o pin crescer. Solução: entregamos pro MapLibre um
+// elemento "de fora" (embrulho) que ele pode mexer à vontade,
+// e colocamos todo o visual (cor, foto, moldura, hover) no
+// elemento "de dentro", que é só nosso.
 function criarElementoPin(local) {
+  const embrulho = document.createElement('div');
+
   const elemento = document.createElement('div');
   elemento.className = 'pin-marcador';
 
+  const classeCategoria = paraClasseCss(local.categoria);
+
   // Só adiciona a classe extra se a categoria não for "padrao"
-  if (local.categoria !== 'padrao') {
-    elemento.classList.add(`pin-marcador--${local.categoria}`);
+  if (classeCategoria !== 'padrao') {
+    elemento.classList.add(`pin-marcador--${classeCategoria}`);
   }
 
   // Se esse local tem imagem, usa ela como fundo do pin
@@ -120,7 +159,8 @@ function criarElementoPin(local) {
     elemento.style.backgroundImage = `url('${local.imagem}')`;
   }
 
-  return elemento;
+  embrulho.appendChild(elemento);
+  return embrulho;
 }
 
 // Monta o HTML de dentro do pop-up, usando as classes que já
@@ -131,11 +171,7 @@ function criarHtmlPopup(local) {
     ? `<img class="popup-imagem" src="${local.imagem}" alt="${local.titulo}">`
     : '';
 
-  // Converte o nome da categoria em uma classe CSS
-  const classeCategoria = local.categoria
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+  const classeCategoria = paraClasseCss(local.categoria);
 
   return `
     ${htmlDaImagem}
@@ -145,17 +181,24 @@ function criarHtmlPopup(local) {
   `;
 }
 
+// Guarda cada marcador junto com sua categoria, pra depois os
+// botões de filtro poderem mostrar/esconder só quem precisa.
+const marcadores = [];
+
 // Passa por cada local da lista e coloca ele no mapa.
 locais.forEach((local) => {
   const elementoPin = criarElementoPin(local);
+  const classeCategoria = paraClasseCss(local.categoria);
 
   const popup = new maplibregl.Popup({ offset: 25 })
     .setHTML(criarHtmlPopup(local));
 
-  new maplibregl.Marker({ element: elementoPin })
+  const marker = new maplibregl.Marker({ element: elementoPin })
     .setLngLat(local.coordenadas)
     .setPopup(popup)
     .addTo(map);
+
+  marcadores.push({ marker, categoria: classeCategoria });
 
   // Por que isso é necessário: quando o popup tem foto, ela
   // carrega de forma assíncrona — ou seja, o MapLibre já decide
@@ -169,13 +212,54 @@ locais.forEach((local) => {
   if (local.imagem) {
     popup.on('open', () => {
       const imgDoPopup = popup.getElement().querySelector('.popup-imagem');
-      if (imgDoPopup && !imgDoPopup.complete) {
-        imgDoPopup.addEventListener(
-          'load',
-          () => popup.setLngLat(local.coordenadas),
-          { once: true }
-        );
+      if (imgDoPopup) {
+        if (!imgDoPopup.complete) {
+          imgDoPopup.addEventListener(
+            'load',
+            () => popup.setLngLat(local.coordenadas),
+            { once: true }
+          );
+        }
+        // Clicar na foto do popup abre ela ampliada no lightbox.
+        imgDoPopup.addEventListener('click', () => {
+          abrirLightbox(local.imagem, local.titulo);
+        });
       }
     });
   }
+});
+
+
+// ------------------------------------------
+// 6. FILTROS POR CATEGORIA
+// ------------------------------------------
+
+// Cada botão de filtro tem um atributo data-categoria (definido
+// no index.html) que precisa bater com a categoria do local
+// (já convertida pra minúsculo/sem acento pela paraClasseCss).
+const botoesFiltro = document.querySelectorAll('.filtro-botao');
+
+botoesFiltro.forEach((botao) => {
+  botao.addEventListener('click', () => {
+    botao.classList.toggle('ativo');
+
+    const categoria = botao.dataset.categoria;
+    const visivel = botao.classList.contains('ativo');
+
+    marcadores
+      .filter((item) => item.categoria === categoria)
+      .forEach((item) => {
+        item.marker.getElement().style.display = visivel ? '' : 'none';
+
+        // Se a categoria foi desligada e o popup dela estava
+        // aberto, fecha ele também — senão fica um popup
+        // "flutuando" sozinho sem o pin correspondente visível.
+        if (!visivel) {
+          const popupDoMarcador = item.marker.getPopup();
+          if (popupDoMarcador && popupDoMarcador.isOpen()) {
+            popupDoMarcador.remove();
+          }
+        }
+      });
+  });
 });
