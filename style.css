@@ -89,15 +89,36 @@ html, body {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 20px;
   background: var(--cor-fundo);
   color: var(--cor-borda);
   font-family: var(--fonte-titulo);
   font-size: 1.5rem;
   letter-spacing: 0.05em;
   z-index: 10;
+}
+
+#carregando p {
+  margin: 0;
   animation: respirar 2s ease-in-out infinite;
+}
+
+/* Anel giratório simples, na cor dourada do tema */
+#carregando::before {
+  content: '';
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid rgba(201, 162, 39, 0.25);
+  border-top-color: var(--cor-borda);
+  animation: girar 0.9s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
 }
 
 @keyframes respirar {
@@ -203,7 +224,8 @@ html, body {
 
 /* Respeita quem prefere menos animações na tela */
 @media (prefers-reduced-motion: reduce) {
-  #carregando,
+  #carregando p,
+  #carregando::before,
   .pin-marcador--misterio {
     animation: none;
   }
@@ -226,16 +248,48 @@ html, body {
 }
 
 .filtro-botao {
-  font-family: var(--fonte-corpo);
-  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--fonte-titulo);
+  font-size: 0.85rem;
   font-weight: 600;
   padding: 6px 14px;
   border-radius: 4px;
-  border: 1px solid var(--cor-borda);
+  border: 1px solid var(--cor-painel);
   background: var(--cor-painel);
   color: var(--cor-texto-claro);
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Pontinho colorido antes do texto, igual a cor do pin daquela
+   categoria — funciona como legenda rápida do mapa. */
+.filtro-botao::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.filtro-botao[data-categoria="local"]::before {
+  background: var(--cor-agua);
+}
+
+.filtro-botao[data-categoria="npc"]::before {
+  background: #8e66bd;
+}
+
+.filtro-botao[data-categoria="faccao"]::before {
+  background: #ff4d51;
+}
+
+.filtro-contagem {
+  opacity: 0.7;
+  font-weight: 400;
 }
 
 /* Botão "ligado" — categoria visível no mapa */
@@ -247,6 +301,314 @@ html, body {
 /* Botão "desligado" — categoria escondida no mapa */
 .filtro-botao:not(.ativo) {
   opacity: 0.5;
+}
+
+.filtro-botao:hover {
+  border-color: var(--cor-texto-claro);
+}
+
+.filtro-botao:focus-visible,
+#botao-lista:focus-visible,
+#fechar-lista:focus-visible,
+.lista-item-cabecalho:focus-visible,
+.lista-item-botao-mapa:focus-visible {
+  outline: 2px solid var(--cor-agua);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------
+   BOTÃO E BARRA LATERAL (lista de descobertas)
+   ------------------------------------------ */
+/* Empurra os controles nativos do MapLibre (zoom +/- e bússola,
+   adicionados via map.addControl no script.js) pra baixo do
+   nosso botão "Descobertas", que ocupa o mesmo canto. */
+.maplibregl-ctrl-top-right {
+  top: 60px;
+}
+
+/* Tema escuro/dourado nos controles nativos do MapLibre (por
+   padrão eles vêm claros/brancos, destoando do resto do site).
+   Fundo dourado, igual ao dos botões de filtro/Descobertas. */
+.maplibregl-ctrl-group {
+  background: var(--cor-borda);
+  border: 1px solid var(--cor-fundo);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.maplibregl-ctrl-group button {
+  background: transparent;
+}
+
+.maplibregl-ctrl-group button:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Ícones de zoom (+/-): ficam escuros, pro contraste funcionar
+   bem em cima do fundo dourado (o ícone padrão é escuro por
+   natureza — só precisamos TIRAR o filtro de inverter cor). */
+.maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon,
+.maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon {
+  filter: brightness(0);
+}
+
+/* Ícone da bússola: o padrão do MapLibre é uma imagem única, e
+   não dá pra pintar "metade de uma cor, metade de outra" só com
+   CSS nela — por isso trocamos pelo nosso próprio desenho (uma
+   agulha de bússola simples): seta de cima dourada, seta de
+   baixo na mesma cor de pedra cinza usada na moldura dos pins. */
+.maplibregl-ctrl-compass .maplibregl-ctrl-icon {
+  filter: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12,2 L17,12 L7,12 Z' fill='%23c9a227' stroke='%232b2822' stroke-width='0.8'/%3E%3Cpath d='M12,22 L17,12 L7,12 Z' fill='%23948c7d' stroke='%232b2822' stroke-width='0.8'/%3E%3C/svg%3E") !important;
+  background-size: 55% 55% !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.maplibregl-ctrl-attrib {
+  background: rgba(23, 50, 44, 0.85) !important;
+  color: var(--cor-texto-claro);
+  border-radius: 4px;
+}
+
+.maplibregl-ctrl-attrib a {
+  color: var(--cor-agua);
+}
+
+.maplibregl-ctrl-attrib-button {
+  filter: invert(1);
+}
+
+#botao-lista {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-family: var(--fonte-titulo);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-painel);
+  color: var(--cor-texto-claro);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+#botao-lista:hover {
+  background: var(--cor-borda);
+  color: var(--cor-fundo);
+}
+
+/* Escurece o mapa por trás quando a barra lateral abre. Fica
+   com display:none o resto do tempo, pra não bloquear cliques
+   no mapa quando a barra está fechada. */
+#barra-lateral-fundo {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 19;
+  pointer-events: auto;
+}
+
+#barra-lateral-fundo.ativo {
+  display: block;
+}
+
+#barra-lateral {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  max-width: 85vw;
+  background: var(--cor-painel);
+  border-left: 1px solid var(--cor-borda);
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.5);
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}
+
+#barra-lateral.aberta {
+  transform: translateX(0);
+}
+
+#barra-lateral-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--cor-borda);
+  flex-shrink: 0;
+}
+
+#barra-lateral-cabecalho h2 {
+  font-family: var(--fonte-titulo);
+  color: var(--cor-borda);
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+#fechar-lista {
+  background: none;
+  border: none;
+  color: var(--cor-texto-claro);
+  font-size: 1.2rem;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 6px;
+  transition: color 0.2s ease;
+}
+
+#fechar-lista:hover {
+  color: var(--cor-borda);
+}
+
+#lista-conteudo {
+  overflow-y: auto;
+  padding: 12px 16px 24px;
+  flex: 1;
+  /* Scrollbar fina e na cor do tema (funciona no Firefox) */
+  scrollbar-width: thin;
+  scrollbar-color: var(--cor-borda) transparent;
+}
+
+/* Mesma coisa, versão pra Chrome/Edge/Safari */
+#lista-conteudo::-webkit-scrollbar {
+  width: 8px;
+}
+
+#lista-conteudo::-webkit-scrollbar-thumb {
+  background: var(--cor-borda);
+  border-radius: 4px;
+}
+
+#lista-conteudo::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.lista-secao-titulo {
+  font-family: var(--fonte-rotulo);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  margin: 20px 0 8px;
+}
+
+/* Mesmas cores dos badges de categoria do popup
+   (.popup-categoria--local, --npc, --faccao). */
+.lista-secao-titulo--local {
+  color: var(--cor-agua);
+}
+
+.lista-secao-titulo--npc {
+  color: #8e66bd;
+}
+
+.lista-secao-titulo--faccao {
+  color: #FF0004;
+}
+
+.lista-secao-titulo:first-child {
+  margin-top: 4px;
+}
+
+.lista-item {
+  border: 1px solid rgba(201, 162, 39, 0.3);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.lista-item-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  color: var(--cor-texto-claro);
+  font-family: var(--fonte-corpo);
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.lista-item-cabecalho:hover {
+  background: rgba(201, 162, 39, 0.08);
+}
+
+.lista-item-titulo {
+  font-family: var(--fonte-titulo);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.lista-item-seta {
+  color: var(--cor-borda);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.lista-item.aberto .lista-item-seta {
+  transform: rotate(180deg);
+}
+
+/* Efeito sanfona: escondido (altura 0) por padrão, "abre"
+   crescendo até um teto quando o item ganha a classe .aberto. */
+.lista-item-corpo {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+  padding: 0 12px;
+}
+
+.lista-item.aberto .lista-item-corpo {
+  max-height: 400px;
+  padding: 0 12px 12px;
+}
+
+.lista-item-imagem {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  cursor: zoom-in;
+}
+
+.lista-item-descricao {
+  font-family: var(--fonte-corpo);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--cor-texto-claro);
+  margin: 0 0 8px;
+}
+
+.lista-item-botao-mapa {
+  font-family: var(--fonte-corpo);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--cor-borda);
+  background: transparent;
+  color: var(--cor-borda);
+  cursor: pointer;
+}
+
+.lista-item-botao-mapa:hover {
+  background: var(--cor-borda);
+  color: var(--cor-fundo);
 }
 
 /* ------------------------------------------
@@ -275,6 +637,49 @@ html, body {
   object-fit: contain;
   border-radius: 4px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+  cursor: default;
+}
+
+/* Setinhas de navegação do lightbox — o script.js usa o
+   atributo "hidden" pra escondê-las quando só tem 1 foto. */
+#lightbox-anterior,
+#lightbox-proxima {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--cor-borda);
+  background: rgba(23, 50, 44, 0.7);
+  color: var(--cor-texto-claro);
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 101;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+#lightbox-anterior:hover,
+#lightbox-proxima:hover {
+  background: var(--cor-borda);
+  color: var(--cor-fundo);
+}
+
+#lightbox-anterior {
+  left: 24px;
+}
+
+#lightbox-proxima {
+  right: 24px;
+}
+
+#lightbox-anterior[hidden],
+#lightbox-proxima[hidden] {
+  display: none;
 }
 
 /* ------------------------------------------
@@ -297,6 +702,24 @@ html, body {
   max-width: min(340px, calc(100vw - 40px));
   max-height: calc(100vh - 40px);
   overflow-y: auto;
+  animation: popup-surgir 0.15s ease-out;
+}
+
+@keyframes popup-surgir {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maplibregl-popup-content {
+    animation: none;
+  }
 }
 
 /* A "setinha" que aponta do balão pro pin */
@@ -317,28 +740,66 @@ html, body {
   color: var(--cor-texto-claro);
 }
 
-/* Foto dentro do pop-up: ocupa a largura toda, "vazando"
-   pra fora do padding do popup (por isso as margens negativas
-   batendo com o padding de 20px lá de cima), com cantos
-   arredondados só em cima, acompanhando o balão.
+/* Container da foto do pop-up: ele que "vaza" pra fora do
+   padding do popup (margens negativas batendo com o padding
+   de 20px), com cantos arredondados só em cima. A imagem em
+   si fica 100% dentro dele. Isso existe separado da <img>
+   porque agora as setinhas de navegação também precisam ficar
+   posicionadas por cima da foto, dentro dessa mesma área. */
+.popup-imagem-container {
+  position: relative;
+  width: calc(100% + 40px);
+  margin: -20px -20px 12px -20px;
+  overflow: hidden;
+  border-radius: 4px 4px 0 0;
+}
 
-   height: auto faz o popup se ajustar exatamente ao formato
-   da foto na maioria dos casos (mostra ela inteira, sem
-   cortar nada). Só quando a foto é alta demais e bate no teto
-   de 260px é que o object-fit: cover entra em ação — nesse
-   caso específico, em vez de distorcer a foto OU deixar o
-   fundo do popup aparecer, ele preenche o espaço inteiro
-   cortando só o mínimo necessário nas bordas (sem esticar,
-   sem gerar espaço vazio). */
+/* height: auto faz o popup se ajustar exatamente ao formato da
+   foto na maioria dos casos (mostra ela inteira, sem cortar).
+   Só quando a foto é alta demais e bate no teto de 260px é que
+   o object-fit: cover entra em ação — em vez de distorcer a
+   foto OU deixar o fundo do popup aparecer, ele preenche o
+   espaço cortando só o mínimo necessário. */
 .popup-imagem {
   display: block;
-  width: calc(100% + 40px);
+  width: 100%;
   height: auto;
   max-height: 260px;
   object-fit: cover;
-  margin: -20px -20px 12px -20px;
-  border-radius: 4px 4px 0 0;
   cursor: zoom-in;
+}
+
+/* Setinhas de navegação — só aparecem no HTML quando o local
+   tem mais de uma foto (ver script.js). */
+.popup-imagem-seta {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(13, 31, 28, 0.6);
+  color: var(--cor-texto-claro);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.popup-imagem-seta:hover {
+  background: rgba(13, 31, 28, 0.9);
+}
+
+.popup-imagem-seta--anterior {
+  left: 8px;
+}
+
+.popup-imagem-seta--proxima {
+  right: 8px;
 }
 
 .popup-categoria {
@@ -387,12 +848,31 @@ html, body {
     max-width: min(270px, calc(100vw - 32px));
     padding: 16px;
   }
-  .popup-imagem {
+  .popup-imagem-container {
     width: calc(100% + 32px);
-    max-height: 200px;
     margin: -16px -16px 12px -16px;
+  }
+  .popup-imagem {
+    max-height: 200px;
   }
   .popup-titulo {
     font-size: 1.1rem;
+  }
+  #filtros {
+    top: 12px;
+    left: 12px;
+  }
+  .filtro-botao {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+  #botao-lista {
+    top: 12px;
+    right: 12px;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+  }
+  .maplibregl-ctrl-top-right {
+    top: 52px;
   }
 }

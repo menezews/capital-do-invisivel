@@ -8,7 +8,16 @@
     <meta name="theme-color" content="#1a1a2e">
     <title>Rio Invisível — Mapa da Campanha</title>
 
-    <link rel="icon" href="assets/favicon.ico">
+    <!-- Como ainda não existe um favicon.ico de verdade, uso um
+         SVG simples desenhado por código (funciona igual, e é
+         mais fácil de trocar depois se você desenhar um seu). -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+    <!-- Como o link vai aparecer se alguém compartilhar (WhatsApp,
+         Discord, etc.) — detalhe pequeno, mas deixa mais profissional. -->
+    <meta property="og:title" content="Rio Invisível — Mapa da Campanha">
+    <meta property="og:description" content="Mapa interativo da campanha de RPG Rio Invisível — Rio de Janeiro">
+    <meta property="og:type" content="website">
 
     <!-- MapLibre -->
     <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet">
@@ -22,11 +31,30 @@
         <div id="mapa"></div>
 
         <div id="ui">
+            <!-- Escurece o mapa por trás quando a barra lateral abre,
+                 e fecha ela se você clicar fora. Precisa estar ANTES
+                 dos outros elementos aqui dentro pra ficar "embaixo"
+                 deles (a ordem no HTML importa pra isso). -->
+            <div id="barra-lateral-fundo"></div>
+
             <div id="filtros">
-                <button type="button" class="filtro-botao ativo" data-categoria="local">Locais</button>
-                <button type="button" class="filtro-botao ativo" data-categoria="npc">NPCs</button>
-                <button type="button" class="filtro-botao ativo" data-categoria="faccao">Facções</button>
+                <button type="button" class="filtro-botao ativo" data-categoria="local">Locais <span class="filtro-contagem"></span></button>
+                <button type="button" class="filtro-botao ativo" data-categoria="npc">NPCs <span class="filtro-contagem"></span></button>
+                <button type="button" class="filtro-botao ativo" data-categoria="faccao">Facções <span class="filtro-contagem"></span></button>
             </div>
+
+            <button type="button" id="botao-lista">☰ Descobertas</button>
+
+            <aside id="barra-lateral">
+                <div id="barra-lateral-cabecalho">
+                    <h2>Descobertas</h2>
+                    <button type="button" id="fechar-lista" aria-label="Fechar lista">✕</button>
+                </div>
+                <div id="lista-conteudo">
+                    <!-- Preenchido automaticamente pelo script.js,
+                         com base no array "locais" -->
+                </div>
+            </aside>
         </div>
 
         <div id="carregando">
@@ -36,7 +64,9 @@
         <!-- Lightbox: mostra a foto do popup em tamanho grande.
              Fica escondido (via CSS) até alguém clicar numa foto. -->
         <div id="lightbox">
+            <button type="button" id="lightbox-anterior" aria-label="Foto anterior">‹</button>
             <img id="lightbox-imagem" src="" alt="">
+            <button type="button" id="lightbox-proxima" aria-label="Próxima foto">›</button>
         </div>
 
     </div>
