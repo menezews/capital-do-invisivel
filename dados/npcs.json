@@ -1,0 +1,13 @@
+[
+  {
+    "titulo": "Cristo Redentor - O Cris",
+    "descricao": "Guardião da Cidade. E o cara mais gente boa que você já conheceu.",
+    "coordenadas": [-43.2105, -22.9519],
+    "imagens": ["assets/imagens/Cristor.png"]
+  },
+  {
+    "titulo": "Vovó Jurema, a Vendedora Ambulante",
+    "descricao": "Aparece em bairros diferentes a cada sessão, vendendo bugigangas que talvez não devessem existir neste plano.",
+    "imagens": []
+  }
+]
