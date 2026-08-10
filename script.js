@@ -108,6 +108,13 @@ const lightbox = document.getElementById('lightbox');
 const lightboxImagem = document.getElementById('lightbox-imagem');
 const lightboxAnterior = document.getElementById('lightbox-anterior');
 const lightboxProxima = document.getElementById('lightbox-proxima');
+const lightboxLupa = document.getElementById('lightbox-lupa');
+
+// Tamanho da caixinha de zoom (em pixels) — precisa bater com o
+// width/height de #lightbox-lupa no style.css (tem um lembrete
+// lá também). E o quanto ela amplia a foto (2.5 = 250%).
+const TAMANHO_LUPA_PIXELS = 300;
+const FATOR_ZOOM_LUPA = 2.5;
 
 // Guarda a lista de fotos do local atual e qual delas está
 // sendo exibida, pra saber o que mostrar quando clicar nas
@@ -124,6 +131,10 @@ function atualizarImagemLightbox(alt) {
   const temVarias = lightboxImagens.length > 1;
   lightboxAnterior.hidden = !temVarias;
   lightboxProxima.hidden = !temVarias;
+  // Trocou de foto — desliga a lupa (ela guarda o recorte da
+  // foto ANTERIOR; mais simples desligar do que recalcular tudo
+  // pra foto nova no meio do gesto do mouse).
+  desligarLupa();
 }
 
 function abrirLightbox(imagens, indiceInicial, alt) {
@@ -135,6 +146,7 @@ function abrirLightbox(imagens, indiceInicial, alt) {
 
 function fecharLightbox() {
   lightbox.classList.remove('ativo');
+  desligarLupa();
 }
 
 function irParaFotoAnteriorLightbox() {
@@ -146,6 +158,68 @@ function irParaProximaFotoLightbox() {
   lightboxIndiceAtual = (lightboxIndiceAtual + 1) % lightboxImagens.length;
   atualizarImagemLightbox();
 }
+
+// Liga/desliga a caixinha de zoom que segue o mouse. Clicar na
+// foto ALTERNA entre os dois estados (não precisa ficar
+// segurando o clique).
+let lupaLigada = false;
+
+function ligarLupa() {
+  lupaLigada = true;
+  lightboxImagem.classList.add('com-lupa-ativa');
+  lightboxLupa.style.backgroundImage = `url("${lightboxImagem.currentSrc || lightboxImagem.src}")`;
+}
+
+function desligarLupa() {
+  lupaLigada = false;
+  lightboxImagem.classList.remove('com-lupa-ativa');
+  lightboxLupa.classList.remove('ativa');
+}
+
+// Recalcula posição/recorte da lupa a partir de onde o mouse
+// está DENTRO da foto — chamado a cada "mousemove".
+function moverLupa(evento) {
+  const retanguloImagem = lightboxImagem.getBoundingClientRect();
+  const x = evento.clientX - retanguloImagem.left;
+  const y = evento.clientY - retanguloImagem.top;
+
+  lightboxLupa.classList.add('ativa');
+
+  // Caixinha sempre centralizada no cursor.
+  lightboxLupa.style.left = `${evento.clientX - TAMANHO_LUPA_PIXELS / 2}px`;
+  lightboxLupa.style.top = `${evento.clientY - TAMANHO_LUPA_PIXELS / 2}px`;
+
+  // O "truque" do efeito lupa: a foto de fundo da caixinha é
+  // ampliada (FATOR_ZOOM_LUPA vezes o tamanho real exibido) e
+  // deslocada de forma que o ponto exato debaixo do cursor
+  // sempre fique centralizado dentro da caixinha.
+  lightboxLupa.style.backgroundSize =
+    `${retanguloImagem.width * FATOR_ZOOM_LUPA}px ${retanguloImagem.height * FATOR_ZOOM_LUPA}px`;
+  lightboxLupa.style.backgroundPosition =
+    `${-(x * FATOR_ZOOM_LUPA - TAMANHO_LUPA_PIXELS / 2)}px ${-(y * FATOR_ZOOM_LUPA - TAMANHO_LUPA_PIXELS / 2)}px`;
+}
+
+lightboxImagem.addEventListener('click', (evento) => {
+  evento.stopPropagation(); // não deixa isso também fechar o lightbox
+  if (lupaLigada) {
+    desligarLupa();
+  } else {
+    ligarLupa();
+    moverLupa(evento); // já posiciona a lupa no lugar do clique, sem esperar o mouse mexer
+  }
+});
+
+lightboxImagem.addEventListener('mousemove', (evento) => {
+  if (lupaLigada) {
+    moverLupa(evento);
+  }
+});
+
+// Mouse saiu da foto (mesmo com a lupa "ligada") — some com a
+// caixinha até o mouse voltar pra cima da foto.
+lightboxImagem.addEventListener('mouseleave', () => {
+  lightboxLupa.classList.remove('ativa');
+});
 
 lightboxAnterior.addEventListener('click', (evento) => {
   evento.stopPropagation(); // não deixa isso também fechar o lightbox
