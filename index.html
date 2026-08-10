@@ -93,11 +93,16 @@
         </div>
 
         <!-- Lightbox: mostra a foto do popup em tamanho grande.
-             Fica escondido (via CSS) até alguém clicar numa foto. -->
+             Fica escondido (via CSS) até alguém clicar numa foto.
+             "lightbox-lupa" é a caixinha de zoom extra: clicando
+             na foto (dentro do lightbox) ela liga, e passa a
+             seguir o mouse mostrando um recorte ampliado de onde
+             o cursor está — clicar de novo na foto desliga. -->
         <div id="lightbox">
             <button type="button" id="lightbox-anterior" aria-label="Foto anterior">‹</button>
             <img id="lightbox-imagem" src="" alt="">
             <button type="button" id="lightbox-proxima" aria-label="Próxima foto">›</button>
+            <div id="lightbox-lupa" aria-hidden="true"></div>
         </div>
 
     </div>
