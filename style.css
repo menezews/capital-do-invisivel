@@ -30,6 +30,15 @@
 
   --fonte-titulo: 'Cinzel', serif;
   --fonte-corpo: 'Work Sans', sans-serif;
+
+  /* Altura da barra fixa de bairros (topo), ABERTA. Usada aqui e
+     em outros pontos do CSS que precisam começar abaixo dela
+     (#mapa, #ui, os controles nativos do MapLibre) — mude só
+     aqui se precisar deixar a barra mais alta ou mais baixa. */
+  --altura-barra-bairros: 56px;
+  /* Altura da barra RECOLHIDA — só a faixa fina com o botão de
+     expandir, sem o seletor/info. */
+  --altura-barra-bairros-recolhida: 30px;
   --fonte-rotulo: 'Uncial Antiqua', cursive;
 }
 
@@ -55,10 +64,125 @@ html, body {
 
 #mapa {
   position: absolute;
-  top: 0;
+  top: var(--altura-barra-bairros);
   bottom: 0;
   left: 0;
   right: 0;
+  transition: top 0.25s ease;
+}
+
+#app.barra-bairros-recolhida #mapa {
+  top: var(--altura-barra-bairros-recolhida);
+}
+
+/* Barra fixa do topo (bairros). Diferente da barra lateral de
+   Descobertas, essa NÃO recolhe/abre — fica sempre visível,
+   por isso não faz parte do #ui (que tem pointer-events: none
+   por padrão) e sim é um irmão dele, sempre clicável. */
+#barra-bairros {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--altura-barra-bairros);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  background: var(--cor-painel);
+  border-bottom: 1px solid var(--cor-borda);
+  z-index: 6;
+  overflow: hidden;
+  transition: height 0.25s ease;
+}
+
+#app.barra-bairros-recolhida #barra-bairros {
+  height: var(--altura-barra-bairros-recolhida);
+}
+
+/* Botão de recolher/expandir — fica de fora do container que
+   encolhe (#barra-bairros-conteudo), pra continuar visível e
+   clicável mesmo com a barra recolhida na faixa fina. */
+#alternar-barra-bairros {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--cor-borda);
+  border-radius: 4px;
+  background: var(--cor-fundo);
+  color: var(--cor-borda);
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.25s ease, background 0.2s ease;
+}
+
+#alternar-barra-bairros:hover,
+#alternar-barra-bairros:focus-visible {
+  background: var(--cor-agua);
+  color: var(--cor-fundo);
+}
+
+#alternar-barra-bairros:focus-visible {
+  outline: 2px solid var(--cor-agua);
+  outline-offset: 2px;
+}
+
+/* Seletor, rótulo e texto de info — tudo que deve sumir (não só
+   ficar cortado) quando a barra recolhe, pra não sobrar
+   respondendo a clique escondido atrás da faixa fina. */
+#barra-bairros-conteudo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+#app.barra-bairros-recolhida #barra-bairros-conteudo {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#barra-bairros label {
+  font-family: var(--fonte-titulo);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-borda);
+  white-space: nowrap;
+}
+
+#seletor-bairro {
+  font-family: var(--fonte-corpo);
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-fundo);
+  color: var(--cor-texto-claro);
+  cursor: pointer;
+  max-width: 220px;
+}
+
+#seletor-bairro:focus-visible {
+  outline: 2px solid var(--cor-agua);
+  outline-offset: 2px;
+}
+
+/* Texto de "info" do bairro selecionado — ao lado do seletor,
+   como pedido. Fica vazio (e sem exibir nada) até escolher um
+   bairro; volta a esvaziar se escolher a opção em branco. */
+#info-bairro {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-claro);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Camada de interface (busca, filtros, menus, painéis).
@@ -70,12 +194,17 @@ html, body {
    não vai responder a cliques. */
 #ui {
   position: absolute;
-  top: 0;
+  top: var(--altura-barra-bairros);
   bottom: 0;
   left: 0;
   right: 0;
   pointer-events: none;
   z-index: 5;
+  transition: top 0.25s ease;
+}
+
+#app.barra-bairros-recolhida #ui {
+  top: var(--altura-barra-bairros-recolhida);
 }
 
 /* ------------------------------------------
@@ -146,13 +275,11 @@ html, body {
 
 /* MOLDURA DE PEDRA: um "carimbo" SVG desenhado por cima do
    pin, com um buraco redondo no meio (é ali que a cor/foto
-   do pin aparece). Tem 3 camadas desenhadas dentro do mesmo
-   SVG (a de baixo pinta primeiro):
+   do pin aparece). Antes tinha 3 camadas num SVG só (sombra,
+   estrela e anel, nessa ordem); agora o ANEL saiu daqui e foi
+   pro ::before (veja o comentário lá embaixo) — aqui sobram só:
    1. uma sombra escura, levemente deslocada (dá profundidade)
    2. a estrela de 8 pontas (rumos cardeais/colaterais)
-   3. um ANEL circular fino, por cima, que cobre só a base de
-      cada ponta — dá a impressão de que as pontas saem de
-      "por trás" desse círculo de pedra.
    Tamanho: 56px (bem maior que o pin de 34px) porque as
    pontas precisam sobrar pra fora do círculo da foto. */
 .pin-marcador::after {
@@ -163,7 +290,7 @@ html, body {
   width: 56px;
   height: 56px;
   transform: translate(-50%, -50%);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50,2 L63,18.6 L83.9,16.1 L81.4,37 L98,50 L81.4,63 L83.9,83.9 L63,81.4 L50,98 L37,81.4 L16.1,83.9 L18.6,63 L2,50 L18.6,37 L16.1,16.1 L37,18.6 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%232a2621' fill-rule='evenodd' transform='translate(1.5,1.5)'/%3E%3Cpath d='M50,2 L63,18.6 L83.9,16.1 L81.4,37 L98,50 L81.4,63 L83.9,83.9 L63,81.4 L50,98 L37,81.4 L16.1,83.9 L18.6,63 L2,50 L18.6,37 L16.1,16.1 L37,18.6 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%23847c6d' stroke='%232b2822' stroke-width='1.2' fill-rule='evenodd'/%3E%3Cpath d='M87,50 A37,37 0 1,0 13,50 A37,37 0 1,0 87,50 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%23948c7d' stroke='%232b2822' stroke-width='1.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50,2 L63,18.6 L83.9,16.1 L81.4,37 L98,50 L81.4,63 L83.9,83.9 L63,81.4 L50,98 L37,81.4 L16.1,83.9 L18.6,63 L2,50 L18.6,37 L16.1,16.1 L37,18.6 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%232a2621' fill-rule='evenodd' transform='translate(1.5,1.5)'/%3E%3Cpath d='M50,2 L63,18.6 L83.9,16.1 L81.4,37 L98,50 L81.4,63 L83.9,83.9 L63,81.4 L50,98 L37,81.4 L16.1,83.9 L18.6,63 L2,50 L18.6,37 L16.1,16.1 L37,18.6 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%23847c6d' stroke='%232b2822' stroke-width='1.2' fill-rule='evenodd'/%3E%3C/svg%3E");
   background-size: contain;
   background-repeat: no-repeat;
   pointer-events: none;
@@ -177,6 +304,69 @@ html, body {
   outline: none;
 }
 
+/* PONTAS ACESAS + ANEL DE PEDRA, no mesmo pseudo-elemento —
+   ordem das camadas da moldura, de trás pra frente, agora é:
+   pontas de pedra (::after) > pontas amarelas > anel de pedra.
+   Isso porque, com "background-image" em lista, a PRIMEIRA
+   camada listada fica por CIMA das seguintes: o anel vem
+   primeiro (fica na frente), as pontas amarelas (preenchidas
+   via variável --pontas-acesas pelo script.js, com
+   criarPontasAcesas) vêm depois (ficam atrás do anel, mas na
+   frente da estrela de pedra do ::after). O anel, sozinho,
+   cobre só a base de cada ponta — dá a impressão de que tanto
+   as pontas de pedra quanto as amarelas saem de "por trás"
+   desse círculo. Mesmo tamanho/posição do ::after, e ainda por
+   CIMA dele (z-index maior), senão ficaria escondido atrás da
+   pedra. */
+.pin-marcador::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  transform: translate(-50%, -50%);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M87,50 A37,37 0 1,0 13,50 A37,37 0 1,0 87,50 Z M80,50 A30,30 0 1,0 20,50 A30,30 0 1,0 80,50 Z' fill='%23948c7d' stroke='%232b2822' stroke-width='1.2' fill-rule='evenodd'/%3E%3C/svg%3E"),
+    var(--pontas-acesas, none);
+  background-size: contain, contain;
+  background-repeat: no-repeat, no-repeat;
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Overlay branco que cobre o pin original enquanto o leque
+   dele está aberto — sinaliza visualmente "esse pin deu lugar
+   ao leque". Fica escondido por padrão (display: none, trocado
+   pelo script.js). Agora cobre 56px (mesmo tamanho do ::after,
+   a moldura de pedra) em vez de só os 34px do círculo central,
+   e usa um mask-image com a MESMA silhueta em estrela da
+   moldura (a mesma forma do SVG usado no ::after) — assim o
+   branco "recorta" certinho no formato da moldura, incluindo
+   as pontas, em vez de ficar um círculo simples que deixaria
+   as pontas de pedra aparecendo por baixo. Fica acima do
+   ::before/::after (pontas e moldura), por isso o z-index maior
+   que os dois. */
+.pin-overlay-leque {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  opacity: 0.4;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50,2 L63,18.6 L83.9,16.1 L81.4,37 L98,50 L81.4,63 L83.9,83.9 L63,81.4 L50,98 L37,81.4 L16.1,83.9 L18.6,63 L2,50 L18.6,37 L16.1,16.1 L37,18.6 Z' fill='%23fff'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50,2 L63,18.6 L83.9,16.1 L81.4,37 L98,50 L81.4,63 L83.9,83.9 L63,81.4 L50,98 L37,81.4 L16.1,83.9 L18.6,63 L2,50 L18.6,37 L16.1,16.1 L37,18.6 Z' fill='%23fff'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 6;
+}
+
 /* Pin com imagem: a foto vira o próprio fundo do círculo.
    O "background-image" é definido no script.js (é diferente
    pra cada local), aqui só ajustamos ela pra preencher certo. */
@@ -185,6 +375,17 @@ html, body {
   background-position: center !important;
   background-repeat: no-repeat !important;
 }
+
+/* Círculo cinza (com as 6 fatias já desenhadas) que aparece
+   atrás dos pins do leque e na frente do pin original enquanto
+   o leque estiver aberto. Tamanho e o desenho em si (SVG com
+   as linhas divisórias) vêm prontos do script.js — aqui só
+   garantimos que ele não atrapalhe cliques. */
+.leque-fundo {
+  pointer-events: none;
+  background-repeat: no-repeat;
+}
+
 
 /* Categorias dos pins — cores combinando com os badges do
    popup (.popup-categoria--local, --npc, --faccao).
@@ -419,7 +620,12 @@ html, body {
 
 #barra-lateral {
   position: fixed;
-  top: 0;
+  /* Como #barra-lateral usa "position: fixed" (não "absolute"),
+     ela NÃO herda automaticamente o deslocamento que #ui recebe
+     por causa da barra de bairros — por isso repetimos a mesma
+     variável aqui, e o mesmo ajuste pra quando ela está
+     recolhida logo abaixo. */
+  top: var(--altura-barra-bairros);
   right: 0;
   bottom: 0;
   width: 320px;
@@ -428,11 +634,15 @@ html, body {
   border-left: 1px solid var(--cor-borda);
   box-shadow: -8px 0 30px rgba(0, 0, 0, 0.5);
   transform: translateX(100%);
-  transition: transform 0.25s ease;
+  transition: transform 0.25s ease, top 0.25s ease;
   z-index: 20;
   display: flex;
   flex-direction: column;
   pointer-events: auto;
+}
+
+#app.barra-bairros-recolhida #barra-lateral {
+  top: var(--altura-barra-bairros-recolhida);
 }
 
 #barra-lateral.aberta {
@@ -468,6 +678,57 @@ html, body {
 
 #fechar-lista:hover {
   color: var(--cor-borda);
+}
+
+/* Bloco de controles da barra lateral (busca + filtros),
+   entre o cabeçalho "Descobertas" e a lista em si. Fica de fora
+   do #lista-conteudo pra não rolar junto com os itens — igual
+   ao cabeçalho, é fixo no topo da barra. */
+#barra-lateral-controles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--cor-borda);
+  flex-shrink: 0;
+}
+
+#busca-lista {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--cor-painel);
+  background: var(--cor-fundo);
+  color: var(--cor-texto-claro);
+  font-family: var(--fonte-corpo);
+  font-size: 0.9rem;
+}
+
+#busca-lista::placeholder {
+  color: var(--cor-texto-claro);
+  opacity: 0.5;
+}
+
+#busca-lista:focus-visible {
+  outline: 2px solid var(--cor-agua);
+  outline-offset: 1px;
+}
+
+/* Filtros DENTRO da barra lateral: controlam só o que aparece
+   na lista de descobertas (diferente dos botões de #filtros,
+   que controlam os pins no mapa). Reaproveitam a classe
+   .filtro-botao (mesmo visual), só que compactos, pra caber
+   os 3 lado a lado numa barra lateral de 320px. */
+#filtros-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filtro-lista-botao {
+  font-size: 0.78rem;
+  padding: 5px 10px;
 }
 
 #lista-conteudo {
@@ -515,8 +776,15 @@ html, body {
   color: #FF0004;
 }
 
-.lista-secao-titulo:first-child {
+.lista-secao:first-child .lista-secao-titulo {
   margin-top: 4px;
+}
+
+/* Escondida via JS (display:none) quando o filtro daquela
+   categoria está desligado, ou quando a busca não encontra
+   nenhum item dela. */
+.lista-secao {
+  display: block;
 }
 
 .lista-item {
@@ -688,6 +956,17 @@ html, body {
    padrão na biblioteca — aqui estamos sobrescrevendo o
    visual padrão (branco) pelo nosso.
    ------------------------------------------ */
+
+/* .maplibregl-popup é o CONTÊINER de fora do balão (o que o
+   MapLibre move pela tela) — precisa de um z-index maior que o
+   de QUALQUER pin, mesmo os de dentro de um leque aberto (veja
+   CAMADA_LEQUE_PIN_ABERTO + CAMADA_POR_CATEGORIA no script.js —
+   hoje isso soma até 13), senão o popup fica escondido atrás
+   deles. Deixamos uma folga (20) acima desse teto. */
+.maplibregl-popup {
+  z-index: 20;
+}
+
 .maplibregl-popup-content {
   background: var(--cor-painel);
   border: 1px solid var(--cor-borda);
