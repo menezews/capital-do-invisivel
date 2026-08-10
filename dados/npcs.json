@@ -6,9 +6,9 @@
     "imagens": ["assets/imagens/Cristor.png"]
   },
   {
-    "titulo": "Vovó Jurema",
+    "titulo": "Vó Jurema",
     "descricao": "A rainha das bugigangas.",
-    "imagens": []
+    "imagens": ["assets/imagens/Vó Jurema.png"]
   },
   {
     "titulo": "Tio Zang",
