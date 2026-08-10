@@ -26,9 +26,32 @@
 </head>
 <body>
 
-    <div id="app">
+    <div id="app" class="barra-bairros-recolhida">
 
         <div id="mapa"></div>
+
+        <!-- Barra fixa do topo: agora retrátil (o botão à esquerda
+             recolhe/expande) — diferente da barra lateral de
+             Descobertas só na aparência, o mecanismo é parecido.
+             Começa FECHADA a cada novo acesso (classe
+             "barra-bairros-recolhida" já vem no #app acima; o
+             botão abaixo já nasce com o texto/atributos do
+             estado fechado, condizentes com isso). Tem um
+             <select> com os bairros (preenchido pelo script.js a
+             partir de dados/bairros.json) e, ao lado, o texto de
+             "info" daquele bairro — também vindo do mesmo JSON. -->
+        <header id="barra-bairros">
+            <button type="button" id="alternar-barra-bairros" aria-expanded="false" aria-controls="barra-bairros-conteudo" aria-label="Expandir barra de bairros">▼</button>
+            <div id="barra-bairros-conteudo">
+                <label for="seletor-bairro">Bairro</label>
+                <select id="seletor-bairro">
+                    <option value="">Selecione um bairro...</option>
+                    <!-- Preenchido automaticamente pelo script.js, com
+                         base no array de dados/bairros.json -->
+                </select>
+                <p id="info-bairro"></p>
+            </div>
+        </header>
 
         <div id="ui">
             <!-- Escurece o mapa por trás quando a barra lateral abre,
@@ -49,6 +72,14 @@
                 <div id="barra-lateral-cabecalho">
                     <h2>Descobertas</h2>
                     <button type="button" id="fechar-lista" aria-label="Fechar lista">✕</button>
+                </div>
+                <div id="barra-lateral-controles">
+                    <input type="search" id="busca-lista" placeholder="Pesquisar por título ou descrição..." aria-label="Pesquisar descobertas">
+                    <div id="filtros-lista">
+                        <button type="button" class="filtro-botao filtro-lista-botao ativo" data-categoria="local">Locais <span class="filtro-contagem"></span></button>
+                        <button type="button" class="filtro-botao filtro-lista-botao ativo" data-categoria="npc">NPCs <span class="filtro-contagem"></span></button>
+                        <button type="button" class="filtro-botao filtro-lista-botao ativo" data-categoria="faccao">Facções <span class="filtro-contagem"></span></button>
+                    </div>
                 </div>
                 <div id="lista-conteudo">
                     <!-- Preenchido automaticamente pelo script.js,
