@@ -6,8 +6,44 @@
     "imagens": ["assets/imagens/Cristor.png"]
   },
   {
-    "titulo": "Vovó Jurema, a Vendedora Ambulante",
-    "descricao": "Aparece em bairros diferentes a cada sessão, vendendo bugigangas que talvez não devessem existir neste plano.",
+    "titulo": "Vovó Jurema",
+    "descricao": "A rainha das bugigangas.",
     "imagens": []
+  },
+  {
+    "titulo": "Tio Zang",
+    "descricao": "Encontra qualquer artefato se você der tempo suficiente a ele.",
+    "coordenadas": [-43.2642, -22.945],
+    "imagens": ["assets/imagens/Tio Zang.png"]
+  },
+  {
+    "titulo": "Léo, Grã-Cruz da Ordem do Mérito.",
+    "descricao": "Poucas coisas escapam à sua memória, e nenhuma ao seu arquivo.",
+    "coordenadas": [-43.182194, -22.905472],
+    "imagens": ["assets/imagens/Léo.png"]
+  },
+  {
+    "titulo": "Mihai",
+    "descricao": "Há conforto em rotinas que sobreviveram a impérios. ",
+    "coordenadas": [-43.2655, -22.9241],
+    "imagens": ["assets/imagens/Mihai Moldovan.png"]
+  },
+  {
+    "titulo": "Dorian",
+    "descricao": "Assume todos os deveres sociais e diplomáticos da relação, com prazer e maestria.",
+    "coordenadas": [-43.26532, -22.92404],
+    "imagens": ["assets/imagens/Dorian Moldovan.png"]
+  },
+    {
+    "titulo": "Sérgio Índico",
+    "descricao": " ",
+    "coordenadas": [-43.314028, -22.979194],
+    "imagens": ["assets/imagens/S.I..png"]
+  },
+    {
+    "titulo": "Sino",
+    "descricao": "O chefe do melhor pirimpimpim.",
+    "coordenadas": [-43.272210, -22.863018],
+    "imagens": ["assets/imagens/Sino.png"]
   }
 ]
