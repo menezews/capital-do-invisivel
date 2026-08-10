@@ -3,24 +3,36 @@
     "titulo": "Confeitaria Colombo",
     "descricao": "As comidas mais saborosas, e os encontros mais necessários. Um lugar de muitas magias.",
     "coordenadas": [-43.17875, -22.90525],
-    "imagens": ["assets/imagens/Colombo.png"]
+    "imagens": ["assets/imagens/Colombo.jpg"]
   },
   {
     "titulo": "Gabinete Real Português de Leitura",
-    "descricao": "'O arquivo da cidade. Protegido e zelado pela Grã-Mestre Léo.",
+    "descricao": "'O arquivo da cidade. Protegido e zelado pela Grã-Cruz Léo.",
     "coordenadas": [-43.182194, -22.905472],
-    "imagens": ["assets/imagens/Gabinete.png"]
-  },
+    "imagens": ["assets/imagens/Gabinete.jpg", "assets/imagens/Léo.png"]
+    },
    {
     "titulo": "Barco do Yoru",
     "descricao": "Quem passa pelo véu, vê que a lancha não passa de uma ilusão.",
     "coordenadas": [-43.169469, -22.918721],
-    "imagens": ["assets/imagens/Barco do Yoru.png", "assets/imagens/Yoru.jpeg"]
+    "imagens": ["assets/imagens/Barco do Yoru.png", "assets/imagens/Yoru.png"]
   },
      {
     "titulo": "Bunker do Simão",
     "descricao": "Ninguém desconfia que embaixo dessas arvóres mora um dragão.",
     "coordenadas": [-43.188771, -22.908574],
-    "imagens": ["assets/imagens/Bunker do Simão.png", "assets/imagens/Simão.jpeg"]
+    "imagens": ["assets/imagens/Bunker do Simão.png", "assets/imagens/Simão.png"]
+  },
+    {
+    "titulo": "Torre do Mihai",
+    "descricao": "Conhece poucos visitantes.",
+    "coordenadas": [-43.2655, -22.9241],
+    "imagens": ["assets/imagens/Torre do Mihai.png"]
+  },
+  {
+    "titulo": "Torre do Dorian",
+    "descricao": "Sempre cheira a pão fresco, terra molhada e óleo de máquina.",
+    "coordenadas": [-43.26532, -22.92404],
+    "imagens": ["assets/imagens/Torre do Dorian.png"]
   }
 ]
