@@ -905,7 +905,42 @@ html, body {
   object-fit: contain;
   border-radius: 4px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
-  cursor: default;
+  cursor: zoom-in;
+}
+
+/* Enquanto a lupa está ligada (classe adicionada pelo
+   script.js), some com o cursor de verdade sobre a foto — quem
+   indica onde o mouse está passa a ser a própria lupa. */
+#lightbox img.com-lupa-ativa {
+  cursor: none;
+}
+
+/* Caixinha de zoom que segue o mouse — o script.js preenche o
+   background-image/position/size dela a cada movimento do
+   mouse, calculando o recorte ampliado certo da foto. Fica
+   fora do fluxo normal (position: fixed) porque sua posição é
+   calculada a partir da posição do CURSOR na tela, não de onde
+   ela está no HTML. */
+#lightbox-lupa {
+  position: fixed;
+  /* Esse tamanho (180px) precisa bater com TAMANHO_LUPA_PIXELS
+     lá no script.js — é o script que calcula o recorte ampliado
+     da foto com base nesse número, então mudar só aqui desalinha
+     a lupa. Pra mudar o tamanho, troque os dois juntos. */
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  border: 3px solid var(--cor-borda);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
+  background-color: var(--cor-fundo);
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 102;
+  display: none;
+}
+
+#lightbox-lupa.ativa {
+  display: block;
 }
 
 /* Setinhas de navegação do lightbox — o script.js usa o
